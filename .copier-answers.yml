@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 1.10.2
+_src_path: gh:DataChefHQ/Inception
+author_email: jevin@quickjack.ca
+author_name: Jevin Maltais
+language: Python
+project_description: ''
+project_license: MIT
+project_name: nutrition_coach
+project_version: 1.0.0
+python_package_manager: Poetry
+python_version: '>=3.12'
