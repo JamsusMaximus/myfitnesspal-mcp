@@ -24,6 +24,10 @@ in
     PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
   };
 
+  processes = {
+    api.exec = "poetry run python -m src.nutrition_coach.api_server";
+  };
+
   # https://devenv.sh/scripts/
   scripts = {
     scrape.exec = "poetry run python -m src.nutrition_coach.myfitnesspal_scrape_food_log";

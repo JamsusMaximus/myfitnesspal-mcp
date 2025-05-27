@@ -16,6 +16,8 @@ python-dotenv = "^1.1.0"
 scrapegraphai = "^1.52.0"
 playwright = "^1.52.0"
 myfitnesspal = "^2.1.2"
+flask = "^3.0.0"  # Or any other appropriate version
+browser-cookie3 = "^0.19.1" # Or any other appropriate version
 
 [tool.poetry.group.dev.dependencies]
 commitizen = "^3.29.0"
