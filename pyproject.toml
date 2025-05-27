@@ -12,6 +12,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
+python-dotenv = "^1.1.0"
+scrapegraphai = "^1.52.0"
+playwright = "^1.52.0"
+myfitnesspal = "^2.1.2"
 
 [tool.poetry.group.dev.dependencies]
 commitizen = "^3.29.0"

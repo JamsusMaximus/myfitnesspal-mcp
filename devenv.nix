@@ -20,11 +20,13 @@ in
   # https://devenv.sh/basics/
   env = {
     GREET = "🛠️ Let's hack ";
+    PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+    PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
   };
 
   # https://devenv.sh/scripts/
   scripts = {
-    hello.exec = "echo $GREET";
+    scrape.exec = "poetry run python -m src.nutrition_coach.myfitnesspal_scrape_food_log";
     cat.exec = "bat $@";
     check-inception-updates.exec = ''
       GREEN="\033[0;32m";
@@ -99,16 +101,7 @@ in
 
   # https://devenv.sh/packages/
   packages = with pkgs; [
-    nixfmt-rfc-style
-    bat
-    jq
-    yq-go
-    tealdeer
-    pipx # to use copier in projects
-    stdenv.cc.cc.lib # required by jupyter
-    gcc-unwrapped # fix: libstdc++.so.6: cannot open shared object file
-    libz # fix: for numpy/pandas import
-    (python3.withPackages python-packages)
+    playwright-driver.browsers
   ];
 
   languages = {
@@ -131,7 +124,7 @@ in
   '';
 
   # https://devenv.sh/pre-commit-hooks/
-  pre-commit.hooks = {
+  git-hooks.hooks = {
     nixfmt-rfc-style = {
       enable = true;
       excludes = [ ".devenv.flake.nix" ];
@@ -141,8 +134,8 @@ in
       settings.preset = "relaxed";
     };
     check-merge-conflicts.enable = true;
-    ruff.enable = true;
-    editorconfig-checker.enable = true;
+    # ruff.enable = true;
+    # editorconfig-checker.enable = true;
   };
 
   # Make diffs fantastic
