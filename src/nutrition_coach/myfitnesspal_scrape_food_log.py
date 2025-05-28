@@ -3,7 +3,7 @@ import browser_cookie3
 import myfitnesspal
 # from myfitnesspal import MyFitnessPalException # Removed problematic import
 
-from .myfitnesspal_config import MyFitnessPalConfig # This import is no longer strictly needed if not using credentials
+# from .myfitnesspal_config import MyFitnessPalConfig # This import is no longer strictly needed if not using credentials
 
 
 class MyFitnessPalCookieError(Exception):

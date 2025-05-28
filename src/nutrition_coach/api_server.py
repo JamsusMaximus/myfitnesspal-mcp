@@ -1,23 +1,18 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from nutrition_coach.myfitnesspal_scrape_food_log import get_myfitnesspal_day_data, MyFitnessPalCookieError
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route('/diary/<int:year>/<int:month>/<int:day>', methods=['GET'])
-def get_diary_data(year, month, day):
+@app.get('/diary/{year}/{month}/{day}')
+async def get_diary_data(year: int, month: int, day: int):
     try:
         data = get_myfitnesspal_day_data(year, month, day)
         if data:
-            return jsonify(data), 200
+            return data
         elif data is None:
-            error_message = {"error": "Failed to retrieve data from MyFitnessPal for the specified date."}
-            return jsonify(error_message), 500
+            raise HTTPException(status_code=500, detail="Failed to retrieve data from MyFitnessPal for the specified date.")
     except MyFitnessPalCookieError:
-        error_message = {"error": "Failed to load MyFitnessPal cookies. Please ensure you are logged in via a supported browser."}
-        return jsonify(error_message), 503
+        raise HTTPException(status_code=503, detail="Failed to load MyFitnessPal cookies. Please ensure you are logged in via a supported browser.")
     except Exception as e:
-        error_message = {"error": f"An unexpected error occurred: {str(e)}"}
-        return jsonify(error_message), 500
-
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
