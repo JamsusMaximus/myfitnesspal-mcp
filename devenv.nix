@@ -14,4 +14,6 @@
   };
 
   processes.mcp.exec = "uv run fastapi dev src/nutrition_coach/api_server.py --port 5000";
+  
+  enterTest = "uv run pytest";
 }

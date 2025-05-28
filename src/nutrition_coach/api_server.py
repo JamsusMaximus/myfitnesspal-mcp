@@ -1,8 +1,20 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from mcp.server.fastmcp import FastMCP  # Added import
 from nutrition_coach.myfitnesspal_scrape_food_log import get_myfitnesspal_day_data, MyFitnessPalCookieError
 
 app = FastAPI()
+
+# Create FastMCP instance
+mcp_server = FastMCP(name="NutritionCoachServer", stateless_http=True)
+
+# Define an example tool
+@mcp_server.tool(description="A simple echo tool")
+def echo(message: str) -> str:
+    return f"Echo: {message}"
+
+# Mount MCP server
+app.mount("/mcp", mcp_server.streamable_http_app())
 
 @app.get('/diary/{year}/{month}/{day}')
 async def get_diary_data(year: int, month: int, day: int):
