@@ -182,3 +182,4 @@ devenv.local.nix
 .direnv
 
 myfitnesspal_cookies.txt
+.aider*
