@@ -1,6 +1,8 @@
 
 import browser_cookie3
 import myfitnesspal
+import os
+from http.cookiejar import MozillaCookieJar
 # from myfitnesspal import MyFitnessPalException # Removed problematic import
 
 # from .myfitnesspal_config import MyFitnessPalConfig # This import is no longer strictly needed if not using credentials
@@ -40,26 +42,84 @@ def get_myfitnesspal_day_data(year: int, month: int, day: int) -> dict | None:
     """
     client = None
     loaded_cookie_jar = None
+    file_load_outcome = None
+    browser_load_outcome = None
 
-    try:
-        # Attempt to load cookies from all supported browsers
-        loaded_cookie_jar = browser_cookie3.load()
-        if not (loaded_cookie_jar and len(loaded_cookie_jar) > 0):
-            loaded_cookie_jar = None  # Ensure it's None if no cookies found
-    except Exception as e: # Catching broad exception from browser_cookie3
-        loaded_cookie_jar = None
-        # Optionally, could re-raise or wrap 'e' in MyFitnessPalCookieError for more details
-        # For now, just setting to None and letting the next block handle it.
+    cookie_file_path = os.getenv("MYFITNESSPAL_COOKIE_FILE")
+
+    if cookie_file_path:
+        print(f"Attempting to load cookies from MYFITNESSPAL_COOKIE_FILE: {cookie_file_path}")
+        try:
+            cj = MozillaCookieJar()
+            cj.load(cookie_file_path, ignore_discard=True, ignore_expires=True)
+            if cj and len(cj) > 0:
+                loaded_cookie_jar = cj
+                print(f"Successfully loaded cookies from file: {cookie_file_path}")
+            else:
+                print(f"Cookie file '{cookie_file_path}' was empty or invalid. Falling back.")
+                file_load_outcome = f"File '{cookie_file_path}' was empty or invalid"
+        except FileNotFoundError:
+            print(f"Cookie file '{cookie_file_path}' not found. Falling back.")
+            file_load_outcome = f"File '{cookie_file_path}' not found"
+        except Exception as e:
+            print(f"Error loading cookies from file '{cookie_file_path}': {e}. Falling back.")
+            file_load_outcome = f"Error loading from file '{cookie_file_path}': {e}"
+
+    if not loaded_cookie_jar:
+        if not cookie_file_path:
+            print("MYFITNESSPAL_COOKIE_FILE not set. Attempting to load cookies using browser_cookie3.")
+        else: # Implies file attempt was made and failed (or didn't load cookies)
+            print("Falling back to browser_cookie3.")
+
+        try:
+            cj_browser = browser_cookie3.load()
+            if cj_browser and len(cj_browser) > 0:
+                loaded_cookie_jar = cj_browser
+                print("Successfully loaded cookies using browser_cookie3.")
+            else:
+                print("browser_cookie3 found no cookies.")
+                browser_load_outcome = "browser_cookie3 found no cookies"
+        except Exception as e:
+            print(f"Error loading cookies using browser_cookie3: {e}")
+            browser_load_outcome = f"browser_cookie3 failed with error: {e}"
 
     if loaded_cookie_jar:
         client = myfitnesspal.Client(cookiejar=loaded_cookie_jar)
     else:
-        raise MyFitnessPalCookieError(
-            "Failed to load browser cookies for MyFitnessPal. "
-            "Please ensure you are logged into MyFitnessPal in a supported browser, "
+        error_summary_parts = []
+        if cookie_file_path:
+            if file_load_outcome:
+                error_summary_parts.append(f"Attempt via MYFITNESSPAL_COOKIE_FILE ('{cookie_file_path}'): {file_load_outcome}")
+            # If file_load_outcome is None here, it means the file was specified,
+            # but the try-except block for file loading didn't set an outcome.
+            # This implies it didn't hit an exception or the "empty/invalid" condition,
+            # yet loaded_cookie_jar is still None. This scenario should be rare if logic is correct.
+            # We'll implicitly cover this by checking browser_load_outcome next.
+
+            if browser_load_outcome: # This means fallback to browser_cookie3 happened and had a specific outcome
+                error_summary_parts.append(f"Fallback via browser_cookie3: {browser_load_outcome}")
+            elif file_load_outcome : # File attempt failed, and browser_cookie3 was tried but didn't set browser_load_outcome (e.g. returned None without error)
+                error_summary_parts.append("Fallback via browser_cookie3 also failed or yielded no cookies")
+        else: # MYFITNESSPAL_COOKIE_FILE was not set, so only browser_cookie3 was attempted
+            if browser_load_outcome:
+                error_summary_parts.append(f"Attempt via browser_cookie3: {browser_load_outcome}")
+            else: # Only browser_cookie3 was tried and it failed or yielded no cookies without a specific error string
+                error_summary_parts.append("Attempt via browser_cookie3 failed or yielded no cookies")
+        
+        detailed_failure_description = ". ".join(filter(None, error_summary_parts)) # filter(None,...) handles if a part is empty
+        if not detailed_failure_description: # Should not happen if we reach here, but as a safeguard
+            detailed_failure_description = "Unknown error loading cookies"
+        elif not detailed_failure_description.endswith('.'):
+            detailed_failure_description += "."
+
+        error_message = (
+            f"Failed to load MyFitnessPal cookies. Details: [{detailed_failure_description}] "
+            "If using a cookie file, ensure it is a valid Netscape-format cookie file. "
+            "If using browser cookies, please ensure you are logged into MyFitnessPal in a supported browser, "
             "that the browser is closed, and that cookies can be accessed. "
             "Alternatively, ensure your browser's cookie database is not locked."
         )
+        raise MyFitnessPalCookieError(error_message)
 
     try:
         day_data = client.get_date(year, month, day)
