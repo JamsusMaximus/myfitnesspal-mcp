@@ -9,10 +9,32 @@ app = FastAPI()
 # Create FastMCP instance
 mcp_server = FastMCP(name="NutritionCoachServer", stateless_http=True)
 
-# Define an example tool
-@mcp_server.tool(description="A simple echo tool")
-def echo(message: str) -> str:
-    return f"Echo: {message}"
+# MCP tool to fetch diary data
+@mcp_server.tool(description="Get MyFitnessPal food diary data for a specific date. Returns meals, nutrition totals, water intake, and notes.")
+def get_diary(date: str) -> str:
+    """Fetch MyFitnessPal diary for a given date.
+
+    Args:
+        date: Date in YYYY-MM-DD format (e.g. '2026-03-08')
+    """
+    import json
+    parts = date.split("-")
+    if len(parts) != 3:
+        return "Error: date must be in YYYY-MM-DD format"
+    try:
+        year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+    except ValueError:
+        return "Error: date must be in YYYY-MM-DD format"
+    try:
+        data = get_myfitnesspal_day_data(year, month, day)
+        if data:
+            return json.dumps(data, indent=2, default=str)
+        else:
+            return "No data found for that date."
+    except MyFitnessPalCookieError as e:
+        return f"Cookie error: {e}"
+    except Exception as e:
+        return f"Error: {e}"
 
 # Mount MCP server
 app.mount("/mcp", mcp_server.streamable_http_app())

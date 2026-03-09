@@ -1,24 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "nutrition-coach"
+name = "mfp-mcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "MyFitnessPal MCP Server - AI assistant integration for MyFitnessPal"
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+authors = [
+    { name = "James" }
+]
+keywords = ["myfitnesspal", "mcp", "ai", "nutrition", "fitness"]
+
 dependencies = [
-    "fastapi[standard]>=0.115.12",
-    "flask>=3.1.1",
-    "mcp>=1.9.1",
+    "mcp>=1.0.0",
     "myfitnesspal>=2.1.2",
+    "keyring>=25.0.0",
+    "cryptography>=42.0.0",
+    "pydantic>=2.0.0",
 ]
 
-[dependency-groups]
-dev = [
-    "httpx>=0.28.1",
-    "pytest>=8.3.5",
-    "mypy>=1.11.0",
+[project.optional-dependencies]
+browser = [
+    "browser-cookie3>=0.19.0",
 ]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
+]
+
+[project.scripts]
+mfp-mcp = "mfp_mcp.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mfp_mcp"]
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "src"
-]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true

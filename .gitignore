@@ -183,3 +183,5 @@ devenv.local.nix
 
 myfitnesspal_cookies.txt
 .aider*
+.firecrawl/
+progress.md

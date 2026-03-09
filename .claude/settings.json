@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "myfitnesspal": {
+      "command": "/Users/james/code/mfp/.venv/bin/mfp-mcp",
+      "args": ["serve"]
+    }
+  }
+}
